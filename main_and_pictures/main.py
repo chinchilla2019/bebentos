@@ -9,7 +9,7 @@ class GUI:
         # screen
         pygame.init()
         self.screen = pygame.display.set_mode((350, 250))
-        self.DELTA = 3
+        self.DELTA = 35
         self.wide_value = 7500
         self.angle_y = 3880
         self.angle_x = 1750
