@@ -8,27 +8,27 @@ class GUI:
     def __init__(self):
         # screen
         pygame.init()
-        self.screen = pygame.display.set_mode((350, 250))
-        self.DELTA = 35
+        self.screen = pygame.display.set_mode((350, 400))
+        self.DELTA = 40
         self.wide_value = 7500
-        self.angle_y = 3880
-        self.angle_x = 1750
+        self.angle_y = 3890
+        self.angle_x = 1230
         self.ser = serial.Serial('COM6', baudrate=9600, timeout=0.01)
         time.sleep(1)
 
-        # creating buttons
+        # creating buttons`
         button_up_surface = pygame.transform.scale(pygame.image.load("up.jpg"), (50, 50))
-        ''' button_down_surface = pygame.transform.scale(pygame.image.load("down.jpg"), (50, 50))'''
+        button_down_surface = pygame.transform.scale(pygame.image.load("down.jpg"), (50, 50))
         button_right_surface = pygame.transform.scale(pygame.image.load("right.png"), (50, 50))
         button_left_surface = pygame.transform.scale(pygame.image.load("left.jpg"), (50, 50))
         button_wide_surface = pygame.transform.scale(pygame.image.load("wide.jpg"), (100, 50))
         button_narrow_surface = pygame.transform.scale(pygame.image.load("narrow.png"), (100, 50))
         self.button_up = Button(button_up_surface, 175, 50)
-        '''button_down = Button(button_down_surface, 450, 350)'''
+        self.button_down = Button(button_down_surface, 175, 150)
         self.button_right = Button(button_right_surface, 250, 100)
         self.button_left = Button(button_left_surface, 100, 100)
-        self.button_wide = Button(button_wide_surface, 175, 125)
-        self.button_narrow = Button(button_narrow_surface, 175, 180)
+        self.button_wide = Button(button_wide_surface, 175, 225)
+        self.button_narrow = Button(button_narrow_surface, 175, 280)
 
     def listen(self):
         while True:
@@ -37,16 +37,17 @@ class GUI:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    '''down = button_down.checking_input(pygame.mouse.get_pos())'''
-                    if self.button_up.checking_input(pygame.mouse.get_pos()):
+                    if self.button_down.checking_input(pygame.mouse.get_pos()):
+                        self.angle_y -= self.DELTA if self.angle_y >= 3880 else 0
+                        self.ser.write((str(self.angle_y) + '\n').encode('utf-8'))
+                    elif self.button_up.checking_input(pygame.mouse.get_pos()):
                         self.angle_y += self.DELTA if self.angle_y <= 4110 else 0
                         self.ser.write((str(self.angle_y) + '\n').encode('utf-8'))
-                        print('up')
                     elif self.button_right.checking_input(pygame.mouse.get_pos()):
-                        self.angle_x -= self.DELTA if self.angle_x >= 1250 else 0
+                        self.angle_x -= self.DELTA if self.angle_x >= 1230 else 0
                         self.ser.write((str(self.angle_x) + '\n').encode('utf-8'))
                     elif self.button_left.checking_input(pygame.mouse.get_pos()):
-                        self.angle_x += self.DELTA if self.angle_x <= 2250 else 0
+                        self.angle_x += self.DELTA if self.angle_x <= 2230 else 0
                         self.ser.write((str(self.angle_x) + '\n').encode('utf-8'))
                     elif self.button_wide.checking_input(pygame.mouse.get_pos()):
                         # wider, from 1500 to 1750
@@ -63,7 +64,7 @@ class GUI:
             # updating buttons
             self.screen.fill("white")
             self.button_up.update(self.screen)
-            '''button_down.update()'''
+            self.button_down.update(self.screen)
             self.button_right.update(self.screen)
             self.button_left.update(self.screen)
             self.button_wide.update(self.screen)
@@ -85,7 +86,8 @@ class Button:
         screen.blit(self.image, self.rect)
 
     def checking_input(self, position):
-        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
+        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top,
+                                                                                          self.rect.bottom):
             return True
 
 
@@ -95,9 +97,9 @@ class Controller:
         pygame.init()
         pygame.joystick.init()
         self.controller = pygame.joystick.Joystick(0)
-        self.DELTA = 3
+        self.DELTA = 35
         self.angle_y = 3880
-        self.angle_x = 1750
+        self.angle_x = 1230
         self.controller.init()
         self.ser = serial.Serial('COM6', baudrate=9600, timeout=0.01)
         time.sleep(1)
@@ -107,29 +109,35 @@ class Controller:
             pygame.event.get()
             if self.controller.get_button(1):
                 # right
-                self.angle_x -= self.DELTA if self.angle_x >= 1250 else 0
+                self.angle_x -= self.DELTA if self.angle_x >= 1230 else 0
                 self.ser.write((str(self.angle_x) + '\n').encode('utf-8'))
+                time.sleep(0.1)
             elif self.controller.get_button(2):
                 # left
-                self.angle_x += self.DELTA if self.angle_x <= 2250 else 0
+                self.angle_x += self.DELTA if self.angle_x <= 2230 else 0
                 self.ser.write((str(self.angle_x) + '\n').encode('utf-8'))
+                time.sleep(0.1)
             elif self.controller.get_button(3):
                 # up
                 self.angle_y += self.DELTA if self.angle_y <= 4110 else 0
                 self.ser.write((str(self.angle_y) + '\n').encode('utf-8'))
-                '''elif self.controller.get_button(0):
-                 self.angle_y -= self.DELTA if self.angle_y >= 3880 else 0
-                 self.ser.write((str(self.angle_y) +).encode('utf-8'))'''
+                time.sleep(0.1)
+            elif self.controller.get_button(0):
+                self.angle_y -= self.DELTA if self.angle_y >= 3880 else 0
+                self.ser.write((str(self.angle_y) + '\n').encode('utf-8'))
+                time.sleep(0.1)
             elif round(self.controller.get_axis(5), 2) != -1.0:
                 # wider
                 axis_data = round(self.controller.get_axis(5), 2)
                 new_value = int(self.map_data(axis_data, -1.0, 1.0, 7500, 7750))
                 self.ser.write((str(new_value) + '\n').encode('utf-8'))
+                time.sleep(0.1)
             elif round(self.controller.get_axis(4), 2) != -1.0:
                 # narrower
                 axis_data = round(self.controller.get_axis(4), 2)
                 new_value = int(self.map_data(axis_data, -1.0, 1.0, 7500, 7280))
                 self.ser.write((str(new_value) + '\n').encode('utf-8'))
+                time.sleep(0.1)
 
     def close_port(self):
         self.ser.close()
